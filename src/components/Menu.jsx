@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { CATEGORIES, FLAVORS } from '../data/flavors';
-import { Search, Star, Plus, Check, Info } from 'lucide-react';
+import { CATEGORIES } from '../data/flavors';
+import { useStore } from '../context/StoreContext';
+import { Search, Star, Plus, Check } from 'lucide-react';
 
 export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
+  const { flavors } = useStore();
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredFlavors = FLAVORS.filter((flavor) => {
+  const filteredFlavors = flavors.filter((flavor) => {
     const matchesCategory = activeCategory === 'all' || flavor.category === activeCategory;
     const matchesSearch = flavor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           flavor.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -42,7 +44,7 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
             <Search size={18} className="search-icon" />
             <input
               type="text"
-              placeholder="Buscar sabor (ej. Pistacho, Chocolate...)"
+              placeholder="Buscar sabor (ej. Pistacho, Cacao, Arequipe...)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -53,14 +55,17 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
         <div className="flavors-grid">
           {filteredFlavors.map((flavor) => {
             const isSelected = selectedFlavors.includes(flavor.name);
+            const isOutOfStock = flavor.inStock === false;
+
             return (
-              <div key={flavor.id} className="flavor-card">
+              <div key={flavor.id} className={`flavor-card ${isOutOfStock ? 'out-of-stock' : ''}`}>
                 <div className="flavor-image-box">
                   <img src={flavor.image} alt={flavor.name} />
                   {flavor.badge && <span className="flavor-badge-tag">{flavor.badge}</span>}
+                  {isOutOfStock && <span className="flavor-out-badge">AGOTADO HOY</span>}
                   <div className="flavor-rating">
                     <Star size={14} fill="#E47A5A" color="#E47A5A" />
-                    <span>{flavor.rating}</span>
+                    <span>{flavor.rating || 5.0}</span>
                   </div>
                 </div>
 
@@ -68,17 +73,22 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
                   <h3 className="flavor-name">{flavor.name}</h3>
                   <p className="flavor-desc">{flavor.description}</p>
 
-                  <div className="flavor-tags">
-                    {flavor.tags.map((tag, idx) => (
-                      <span key={idx} className="tag-pill">{tag}</span>
-                    ))}
-                  </div>
+                  {flavor.tags && (
+                    <div className="flavor-tags">
+                      {flavor.tags.map((tag, idx) => (
+                        <span key={idx} className="tag-pill">{tag}</span>
+                      ))}
+                    </div>
+                  )}
 
                   <button
-                    className={`btn-add-flavor ${isSelected ? 'selected' : ''}`}
-                    onClick={() => onSelectFlavor(flavor.name)}
+                    className={`btn-add-flavor ${isSelected ? 'selected' : ''} ${isOutOfStock ? 'disabled' : ''}`}
+                    disabled={isOutOfStock}
+                    onClick={() => !isOutOfStock && onSelectFlavor(flavor.name)}
                   >
-                    {isSelected ? (
+                    {isOutOfStock ? (
+                      'Agotado por Hoy'
+                    ) : isSelected ? (
                       <>
                         <Check size={16} /> Seleccionado
                       </>
@@ -192,6 +202,10 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
           box-shadow: var(--shadow-md);
         }
 
+        .flavor-card.out-of-stock {
+          opacity: 0.7;
+        }
+
         .flavor-image-box {
           position: relative;
           height: 180px;
@@ -210,6 +224,18 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
           background: var(--color-cherry);
           color: #FFF;
           font-family: var(--font-heading);
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 0.3rem 0.7rem;
+          border-radius: var(--radius-full);
+        }
+
+        .flavor-out-badge {
+          position: absolute;
+          top: 0.8rem;
+          right: 0.8rem;
+          background: rgba(61, 39, 34, 0.85);
+          color: #FFF;
           font-size: 0.72rem;
           font-weight: 800;
           padding: 0.3rem 0.7rem;
@@ -284,7 +310,7 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
           transition: var(--transition);
         }
 
-        .btn-add-flavor:hover {
+        .btn-add-flavor:hover:not(.disabled) {
           background: var(--color-blue);
           color: #FFFFFF;
         }
@@ -292,6 +318,12 @@ export default function Menu({ onSelectFlavor, selectedFlavors = [] }) {
         .btn-add-flavor.selected {
           background: var(--color-terracotta);
           color: #FFFFFF;
+        }
+
+        .btn-add-flavor.disabled {
+          background: rgba(0,0,0,0.08);
+          color: #999;
+          cursor: not-allowed;
         }
       `}</style>
     </section>

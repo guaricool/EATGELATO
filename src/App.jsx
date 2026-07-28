@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { StoreProvider, useStore } from './context/StoreContext';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import DailyOffers from './components/DailyOffers';
@@ -8,11 +9,33 @@ import OurStory from './components/OurStory';
 import CartModal from './components/CartModal';
 import LocationHours from './components/LocationHours';
 import Footer from './components/Footer';
+import AdminLogin from './components/AdminLogin';
+import AdminPortal from './components/AdminPortal';
 
-export default function App() {
+function MainApp() {
+  const { isAdminAuthenticated, addOrder } = useStore();
+  const [currentRoute, setCurrentRoute] = useState(window.location.hash);
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [builderSelectedFlavors, setBuilderSelectedFlavors] = useState([]);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentRoute(window.location.hash);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Check if user navigated to #/admin or /admin
+  const isAdminRoute = currentRoute === '#/admin' || window.location.pathname === '/admin';
+
+  if (isAdminRoute) {
+    if (!isAdminAuthenticated) {
+      return <AdminLogin />;
+    }
+    return <AdminPortal onGoToLanding={() => { window.location.hash = ''; }} />;
+  }
 
   // Add custom tub to cart
   const handleAddToCart = (newItem) => {
@@ -26,7 +49,6 @@ export default function App() {
       setBuilderSelectedFlavors(builderSelectedFlavors.filter((f) => f !== flavorName));
     } else {
       setBuilderSelectedFlavors([...builderSelectedFlavors, flavorName]);
-      // Scroll to builder
       const el = document.getElementById('armar-pote');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
@@ -37,7 +59,7 @@ export default function App() {
     const offerItem = {
       id: Date.now().toString(),
       title: offer.title,
-      totalPrice: parseInt(offer.price.replace(/[^0-9]/g, '')) || 8500
+      totalPrice: parseFloat((offer.price || '8.00').replace(/[^0-9.]/g, '')) || 8.0
     };
     setCartItems([...cartItems, offerItem]);
     setIsCartOpen(true);
@@ -66,7 +88,7 @@ export default function App() {
         <LocationHours />
       </main>
 
-      <Footer />
+      <Footer onOpenAdmin={() => { window.location.hash = '#/admin'; }} />
 
       <CartModal 
         isOpen={isCartOpen}
@@ -75,5 +97,13 @@ export default function App() {
         onRemoveItem={handleRemoveItem}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <StoreProvider>
+      <MainApp />
+    </StoreProvider>
   );
 }

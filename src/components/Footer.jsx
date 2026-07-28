@@ -1,7 +1,10 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Lock } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 
-export default function Footer() {
+export default function Footer({ onOpenAdmin }) {
+  const { storeInfo } = useStore();
+
   return (
     <footer className="footer">
       <div className="container footer-container">
@@ -9,8 +12,8 @@ export default function Footer() {
           <div className="brand-logo">
             <img src="/logo.jpg" alt="EAT GELATO Logo" className="logo-img" />
             <div className="brand-text">
-              <span className="brand-title">EAT GELATO</span>
-              <span className="brand-subtitle">GOURMET ARTESANAL</span>
+              <span className="brand-title">{storeInfo.name}</span>
+              <span className="brand-subtitle">{storeInfo.tagline}</span>
             </div>
           </div>
           <p className="footer-desc">
@@ -29,18 +32,23 @@ export default function Footer() {
 
         <div className="footer-links">
           <h4>Contacto y Pedidos</h4>
-          <a href="https://wa.me/5491112345678" target="_blank" rel="noopener noreferrer">WhatsApp Directo</a>
+          <a href={`https://wa.me/${storeInfo.whatsapp}`} target="_blank" rel="noopener noreferrer">WhatsApp Directo</a>
           <a href="#contacto">Ubicación y Mapas</a>
-          <a href="mailto:contacto@eatgelato.com">contacto@eatgelato.com</a>
+          <a href={`mailto:${storeInfo.email}`}>{storeInfo.email}</a>
         </div>
       </div>
 
       <div className="footer-bottom">
         <div className="container bottom-flex">
-          <p>© {new Date().getFullYear()} EAT GELATO. Todos los derechos reservados.</p>
-          <p className="made-with">
-            Hecho con <Heart size={14} fill="#C83E4D" color="#C83E4D" /> para los amantes del buen gelato
-          </p>
+          <p>© {new Date().getFullYear()} {storeInfo.name}. Todos los derechos reservados.</p>
+          <div className="bottom-right-links">
+            <button className="admin-footer-btn" onClick={onOpenAdmin}>
+              <Lock size={12} /> Acceso Administrador
+            </button>
+            <span className="made-with">
+              Hecho con <Heart size={14} fill="#C83E4D" color="#C83E4D" /> para los amantes del buen gelato
+            </span>
+          </div>
         </div>
       </div>
 
@@ -128,6 +136,32 @@ export default function Footer() {
           justify-content: space-between;
           flex-wrap: wrap;
           gap: 1rem;
+        }
+
+        .bottom-right-links {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+        }
+
+        .admin-footer-btn {
+          background: rgba(255,255,255,0.08);
+          color: rgba(255,255,255,0.7);
+          border: none;
+          padding: 0.3rem 0.7rem;
+          border-radius: var(--radius-sm);
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          transition: var(--transition);
+        }
+
+        .admin-footer-btn:hover {
+          background: var(--color-terracotta);
+          color: #FFF;
         }
 
         .made-with {

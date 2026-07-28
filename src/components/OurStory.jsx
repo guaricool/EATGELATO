@@ -1,36 +1,36 @@
 import React from 'react';
-import { HeartHandshake, CheckCircle2, Flame, RefreshCw } from 'lucide-react';
+import { HeartHandshake, CheckCircle2, RefreshCw, Flame } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 
 export default function OurStory() {
+  const { story } = useStore();
+
   return (
     <section id="historia" className="story-section">
       <div className="container story-container">
         <div className="story-image-box">
           <img 
-            src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80" 
-            alt="Gelataio elaborando gelato artesanal" 
+            src={story.image || "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=800&q=80"} 
+            alt="El Gelataio - Dueño de EAT GELATO" 
             className="story-main-img"
           />
           <div className="story-floating-card">
             <HeartHandshake className="story-card-icon" size={32} />
             <div>
-              <h4>Atención del Dueño</h4>
+              <h4>{story.badge || "Atención del Dueño"}</h4>
               <p>Cada cliente es recibido con una sonrisa y una recomendación experta.</p>
             </div>
           </div>
         </div>
 
         <div className="story-content">
-          <span className="badge badge-terracotta">Nuestra Esencia</span>
+          <span className="badge badge-terracotta">{story.subtitle || "Nuestra Esencia"}</span>
           <h2 className="story-title">
-            Pasión Artesanal y <br />
-            <span className="highlight-text">Atención Familiar</span>
+            {story.title || "Pasión Artesanal y Atención Familiar"}
           </h2>
 
           <p className="story-text">
-            En <strong>EAT GELATO</strong> no hacemos producción industrial. Somos una heladería atendida personalmente 
-            por su dueño y maestro gelatero. Creemos en el valor de las cosas hechas sin prisa, cuidando cada detalle 
-            desde la elección de las materias primas hasta la textura final en la copa.
+            {story.text}
           </p>
 
           <div className="story-features">
@@ -124,10 +124,6 @@ export default function OurStory() {
           font-weight: 900;
           margin: 1rem 0 1.2rem;
           color: var(--color-chocolate);
-        }
-
-        .highlight-text {
-          color: var(--color-terracotta);
         }
 
         .story-text {

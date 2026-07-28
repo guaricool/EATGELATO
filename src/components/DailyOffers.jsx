@@ -1,8 +1,13 @@
 import React from 'react';
-import { DAILY_OFFERS } from '../data/flavors';
 import { Tag, Sparkles, ShoppingBag, Clock } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
 
 export default function DailyOffers({ onSelectOffer }) {
+  const { offers } = useStore();
+  const activeOffers = offers.filter(o => o.active !== false);
+
+  if (activeOffers.length === 0) return null;
+
   return (
     <section id="ofertas" className="offers-section">
       <div className="container">
@@ -17,12 +22,12 @@ export default function DailyOffers({ onSelectOffer }) {
         </div>
 
         <div className="offers-grid">
-          {DAILY_OFFERS.map((offer) => (
+          {activeOffers.map((offer) => (
             <div key={offer.id} className="offer-card">
               <div className="offer-image-container">
                 <img src={offer.image} alt={offer.title} className="offer-image" />
                 <span className="offer-badge-top">{offer.badge}</span>
-                <span className="offer-tag-bottom"><Clock size={12} /> {offer.tag}</span>
+                {offer.tag && <span className="offer-tag-bottom"><Clock size={12} /> {offer.tag}</span>}
               </div>
 
               <div className="offer-content">
@@ -32,7 +37,7 @@ export default function DailyOffers({ onSelectOffer }) {
                 <div className="offer-footer">
                   <div className="price-box">
                     <span className="price-current">{offer.price}</span>
-                    <span className="price-old">{offer.originalPrice}</span>
+                    {offer.originalPrice && <span className="price-old">{offer.originalPrice}</span>}
                   </div>
 
                   <button 

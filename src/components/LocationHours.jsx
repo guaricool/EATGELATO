@@ -1,12 +1,21 @@
 import React from 'react';
 import { MapPin, Clock, Phone, Mail, Instagram, Facebook, Star, Award, CreditCard } from 'lucide-react';
+import { useStore } from '../context/StoreContext';
+import { PAYMENT_METHODS } from '../data/flavors';
 
 export default function LocationHours() {
+  const { storeInfo } = useStore();
+
+  const activePayments = (storeInfo.paymentMethods || [])
+    .map(id => PAYMENT_METHODS.find(p => p.id === id)?.label)
+    .filter(Boolean)
+    .join(' • ');
+
   return (
     <section id="contacto" className="location-section">
       <div className="container">
         <div className="section-header">
-          <span className="badge badge-blue">Visitanos en Caracas o Pedí a Domicilio</span>
+          <span className="badge badge-blue">Visitanos o Pedí a Domicilio</span>
           <h2 className="section-title">Ubicación y Horarios de Atención</h2>
           <p className="section-subtitle">
             Te esperamos en nuestro local con la cálida bienvenida de su propio dueño.
@@ -20,8 +29,8 @@ export default function LocationHours() {
               <MapPin className="info-icon" size={24} />
               <div>
                 <h4>Dirección del Local</h4>
-                <p>Av. Principal de Las Mercedes, Caracas - Venezuela 🇻🇪</p>
-                <span className="info-sub">Estacionamiento exclusivo y seguridad para clientes.</span>
+                <p>{storeInfo.address}</p>
+                {storeInfo.reference && <span className="info-sub">{storeInfo.reference}</span>}
               </div>
             </div>
 
@@ -29,9 +38,9 @@ export default function LocationHours() {
               <Clock className="info-icon" size={24} />
               <div>
                 <h4>Horarios de Atención</h4>
-                <p><strong>Lunes a Jueves:</strong> 12:00 PM - 10:00 PM</p>
-                <p><strong>Viernes y Sábados:</strong> 12:00 PM - 11:30 PM</p>
-                <p><strong>Domingos:</strong> 12:00 PM - 10:30 PM</p>
+                <p><strong>Lunes a Jueves:</strong> {storeInfo.hours?.weekdays || '12:00 PM - 10:00 PM'}</p>
+                <p><strong>Viernes y Sábados:</strong> {storeInfo.hours?.weekends || '12:00 PM - 11:30 PM'}</p>
+                <p><strong>Domingos:</strong> {storeInfo.hours?.sunday || '12:00 PM - 10:30 PM'}</p>
               </div>
             </div>
 
@@ -39,25 +48,31 @@ export default function LocationHours() {
               <Phone className="info-icon" size={24} />
               <div>
                 <h4>Teléfono & WhatsApp Directo</h4>
-                <p>+58 412-1234567 / +58 424-9876543</p>
+                <p>{storeInfo.phone}</p>
               </div>
             </div>
 
-            <div className="info-item">
-              <CreditCard className="info-icon" size={24} />
-              <div>
-                <h4>Métodos de Pago Aceptados</h4>
-                <p>Pago Móvil (Tasa BCV) • Zelle • Efectivo $ • Punto de Venta</p>
+            {activePayments && (
+              <div className="info-item">
+                <CreditCard className="info-icon" size={24} />
+                <div>
+                  <h4>Métodos de Pago Aceptados</h4>
+                  <p>{activePayments}</p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="social-links">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <Instagram size={20} />
-              </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <Facebook size={20} />
-              </a>
+              {storeInfo.social?.instagram && (
+                <a href={storeInfo.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  <Instagram size={20} />
+                </a>
+              )}
+              {storeInfo.social?.facebook && (
+                <a href={storeInfo.social.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                  <Facebook size={20} />
+                </a>
+              )}
             </div>
           </div>
 
@@ -66,8 +81,8 @@ export default function LocationHours() {
             <div className="map-placeholder">
               <div className="map-overlay">
                 <Award size={40} className="map-award-icon" />
-                <h3>EAT GELATO GOURMET</h3>
-                <p>Las Mercedes, Caracas 🇻🇪</p>
+                <h3>{storeInfo.name} GOURMET</h3>
+                <p>{storeInfo.address}</p>
                 <a 
                   href="https://maps.google.com" 
                   target="_blank" 
@@ -90,9 +105,9 @@ export default function LocationHours() {
                   <Star size={16} fill="#E47A5A" color="#E47A5A" />
                 </div>
                 <p className="testimonial-quote">
-                  "El mejor gelato de Caracas. El sabor a Cacao de Chuao y Arequipe Real son increíbles. Además el dueño siempre te atiende con la mejor disposición."
+                  "El mejor gelato de la ciudad. El sabor a Cacao de Chuao y Arequipe Real son increíbles. Además el dueño siempre te atiende con la mejor disposición."
                 </p>
-                <span className="testimonial-author">- Valentina M., Caracas</span>
+                <span className="testimonial-author">- Valentina M., Cliente Satisfecho</span>
               </div>
             </div>
           </div>
