@@ -1,0 +1,193 @@
+:root {
+  /* Color Palette derived from EAT GELATO Logo */
+  --bg-primary: #FAF6F0;
+  --bg-card: #FFFFFF;
+  --bg-card-alt: #F4EBE1;
+  --bg-accent-light: #EFF6F9;
+  
+  --color-blue: #4889A8;
+  --color-blue-dark: #356780;
+  --color-terracotta: #E47A5A;
+  --color-terracotta-dark: #C95A3A;
+  --color-chocolate: #3D2722;
+  --color-chocolate-muted: #6B4E46;
+  --color-cherry: #C83E4D;
+  --color-cherry-dark: #A32836;
+  --color-vanilla: #F5D7A1;
+  --color-vanilla-dark: #E2B974;
+
+  --shadow-sm: 0 2px 8px rgba(61, 39, 34, 0.06);
+  --shadow-md: 0 8px 24px rgba(61, 39, 34, 0.09);
+  --shadow-lg: 0 16px 36px rgba(61, 39, 34, 0.12);
+  --shadow-glow: 0 8px 25px rgba(228, 122, 90, 0.3);
+
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--color-chocolate);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-chocolate);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: var(--font-heading);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(228, 122, 90, 0.4); }
+  50% { box-shadow: 0 0 30px rgba(228, 122, 90, 0.7); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* Utility Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.badge-terracotta {
+  background-color: rgba(228, 122, 90, 0.12);
+  color: var(--color-terracotta-dark);
+  border: 1px solid rgba(228, 122, 90, 0.25);
+}
+
+.badge-blue {
+  background-color: rgba(72, 137, 168, 0.12);
+  color: var(--color-blue-dark);
+  border: 1px solid rgba(72, 137, 168, 0.25);
+}
+
+.badge-cherry {
+  background-color: var(--color-cherry);
+  color: #FFF;
+}
+
+/* Primary Button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, var(--color-terracotta) 0%, var(--color-terracotta-dark) 100%);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.9rem 1.8rem;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-glow);
+  transition: var(--transition);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(228, 122, 90, 0.45);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: var(--bg-card);
+  color: var(--color-blue-dark);
+  border: 2px solid var(--color-blue);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.9rem 1.8rem;
+  border-radius: var(--radius-full);
+  transition: var(--transition);
+}
+
+.btn-secondary:hover {
+  background: var(--color-blue);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+.btn-whatsapp {
+  background: #25D366;
+  color: #FFF;
+  font-weight: 700;
+}
+
+.btn-whatsapp:hover {
+  background: #20BA5A;
+  transform: translateY(-2px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-blue);
+  border-radius: 4px;
+}
