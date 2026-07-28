@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { FLAVORS, DAILY_OFFERS, TUB_SIZES, TOPPINGS, PAYMENT_METHODS } from '../data/flavors';
+import { FLAVORS, DAILY_OFFERS } from '../data/flavors';
 
 const StoreContext = createContext();
 
@@ -32,71 +32,62 @@ const DEFAULT_STORY = {
 };
 
 export function StoreProvider({ children }) {
-  // Flavors
-  const [flavors, setFlavors] = useState(() => {
-    const saved = localStorage.getItem('eat_gelato_flavors');
-    return saved ? JSON.parse(saved) : FLAVORS.map(f => ({ ...f, inStock: true }));
-  });
+  const [flavors, setFlavors] = useState(FLAVORS.map(f => ({ ...f, inStock: true })));
+  const [offers, setOffers] = useState(DAILY_OFFERS.map(o => ({ ...o, active: true })));
+  const [storeInfo, setStoreInfo] = useState(DEFAULT_STORE_INFO);
+  const [story, setStory] = useState(DEFAULT_STORY);
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Offers
-  const [offers, setOffers] = useState(() => {
-    const saved = localStorage.getItem('eat_gelato_offers');
-    return saved ? JSON.parse(saved) : DAILY_OFFERS.map(o => ({ ...o, active: true }));
-  });
+  // Admin PIN
+  const [adminPin, setAdminPin] = useState(() => localStorage.getItem('eat_gelato_pin') || '1234');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => sessionStorage.getItem('eat_gelato_auth') === 'true');
 
-  // Store Info
-  const [storeInfo, setStoreInfo] = useState(() => {
-    const saved = localStorage.getItem('eat_gelato_info');
-    return saved ? JSON.parse(saved) : DEFAULT_STORE_INFO;
-  });
+  // Helper for Uploading Base64 images to VPS /api/upload
+  const uploadImageIfNeeded = async (imageString) => {
+    if (!imageString || !imageString.startsWith('data:image')) {
+      return imageString; // Already a URL
+    }
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64: imageString })
+      });
+      const data = await res.json();
+      return data.url || imageString;
+    } catch (err) {
+      console.error('Error uploading image to VPS:', err);
+      return imageString;
+    }
+  };
 
-  // Story
-  const [story, setStory] = useState(() => {
-    const saved = localStorage.getItem('eat_gelato_story');
-    return saved ? JSON.parse(saved) : DEFAULT_STORY;
-  });
-
-  // Orders Log
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem('eat_gelato_orders');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // Admin Authentication
-  const [adminPin, setAdminPin] = useState(() => {
-    return localStorage.getItem('eat_gelato_pin') || '1234';
-  });
-
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => {
-    return sessionStorage.getItem('eat_gelato_auth') === 'true';
-  });
-
-  // Save to LocalStorage on change
+  // Fetch initial data from VPS API
   useEffect(() => {
-    localStorage.setItem('eat_gelato_flavors', JSON.stringify(flavors));
-  }, [flavors]);
-
-  useEffect(() => {
-    localStorage.setItem('eat_gelato_offers', JSON.stringify(offers));
-  }, [offers]);
-
-  useEffect(() => {
-    localStorage.setItem('eat_gelato_info', JSON.stringify(storeInfo));
-  }, [storeInfo]);
-
-  useEffect(() => {
-    localStorage.setItem('eat_gelato_story', JSON.stringify(story));
-  }, [story]);
-
-  useEffect(() => {
-    localStorage.setItem('eat_gelato_orders', JSON.stringify(orders));
-  }, [orders]);
+    async function loadData() {
+      try {
+        const res = await fetch('/api/initial-data');
+        if (res.ok) {
+          const db = await res.json();
+          if (db.flavors && db.flavors.length > 0) setFlavors(db.flavors);
+          if (db.offers && db.offers.length > 0) setOffers(db.offers);
+          if (db.storeInfo) setStoreInfo(db.storeInfo);
+          if (db.story) setStory(db.story);
+          if (db.orders) setOrders(db.orders);
+        }
+      } catch (err) {
+        console.warn('Backend API not reachable offline, fallback to defaults:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('eat_gelato_pin', adminPin);
   }, [adminPin]);
 
-  // Actions
   const loginAdmin = (pin) => {
     if (pin === adminPin) {
       setIsAdminAuthenticated(true);
@@ -111,63 +102,182 @@ export function StoreProvider({ children }) {
     sessionStorage.removeItem('eat_gelato_auth');
   };
 
-  // Flavor actions
-  const addFlavor = (newFlavor) => {
-    const flavorWithId = {
-      ...newFlavor,
-      id: 'f_' + Date.now(),
-      inStock: true,
-      rating: newFlavor.rating || 5.0
-    };
-    setFlavors([flavorWithId, ...flavors]);
+  // Flavor actions with VPS sync
+  const addFlavor = async (newFlavor) => {
+    const imageUrl = await uploadImageIfNeeded(newFlavor.image);
+    const payload = { ...newFlavor, image: imageUrl };
+
+    try {
+      const res = await fetch('/api/flavors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const savedFlavor = await res.json();
+        setFlavors(prev => [savedFlavor, ...prev]);
+        return;
+      }
+    } catch (e) {
+      console.error('API Error adding flavor:', e);
+    }
+    // Fallback local
+    const fallbackId = 'f_' + Date.now();
+    setFlavors(prev => [{ ...payload, id: fallbackId, inStock: true }, ...prev]);
   };
 
-  const updateFlavor = (id, updatedData) => {
-    setFlavors(flavors.map(f => f.id === id ? { ...f, ...updatedData } : f));
+  const updateFlavor = async (id, updatedData) => {
+    let imageUrl = updatedData.image;
+    if (imageUrl) {
+      imageUrl = await uploadImageIfNeeded(imageUrl);
+    }
+    const payload = { ...updatedData, image: imageUrl };
+
+    try {
+      const res = await fetch(`/api/flavors/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setFlavors(prev => prev.map(f => f.id === id ? saved : f));
+        return;
+      }
+    } catch (e) {
+      console.error('API Error updating flavor:', e);
+    }
+    setFlavors(prev => prev.map(f => f.id === id ? { ...f, ...payload } : f));
   };
 
-  const deleteFlavor = (id) => {
-    setFlavors(flavors.filter(f => f.id !== id));
+  const deleteFlavor = async (id) => {
+    try {
+      await fetch(`/api/flavors/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('API Error deleting flavor:', e);
+    }
+    setFlavors(prev => prev.filter(f => f.id !== id));
   };
 
-  const toggleFlavorStock = (id) => {
-    setFlavors(flavors.map(f => f.id === id ? { ...f, inStock: !f.inStock } : f));
+  const toggleFlavorStock = async (id) => {
+    const target = flavors.find(f => f.id === id);
+    if (!target) return;
+    const newStock = !target.inStock;
+
+    setFlavors(prev => prev.map(f => f.id === id ? { ...f, inStock: newStock } : f));
+
+    try {
+      await fetch(`/api/flavors/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inStock: newStock })
+      });
+    } catch (e) {
+      console.error('API Error toggling stock:', e);
+    }
   };
 
-  // Offer actions
-  const addOffer = (newOffer) => {
-    const offerWithId = {
-      ...newOffer,
-      id: 'offer_' + Date.now(),
-      active: true
-    };
-    setOffers([offerWithId, ...offers]);
+  // Offer actions with VPS sync
+  const addOffer = async (newOffer) => {
+    const imageUrl = await uploadImageIfNeeded(newOffer.image);
+    const payload = { ...newOffer, image: imageUrl };
+
+    try {
+      const res = await fetch('/api/offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setOffers(prev => [saved, ...prev]);
+        return;
+      }
+    } catch (e) {
+      console.error('API Error adding offer:', e);
+    }
+    setOffers(prev => [{ ...payload, id: 'offer_' + Date.now(), active: true }, ...prev]);
   };
 
-  const updateOffer = (id, updatedData) => {
-    setOffers(offers.map(o => o.id === id ? { ...o, ...updatedData } : o));
+  const updateOffer = async (id, updatedData) => {
+    let imageUrl = updatedData.image;
+    if (imageUrl) imageUrl = await uploadImageIfNeeded(imageUrl);
+    const payload = { ...updatedData, image: imageUrl };
+
+    try {
+      const res = await fetch(`/api/offers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setOffers(prev => prev.map(o => o.id === id ? saved : o));
+        return;
+      }
+    } catch (e) {
+      console.error('API Error updating offer:', e);
+    }
+    setOffers(prev => prev.map(o => o.id === id ? { ...o, ...payload } : o));
   };
 
-  const deleteOffer = (id) => {
-    setOffers(offers.filter(o => o.id !== id));
+  const deleteOffer = async (id) => {
+    try {
+      await fetch(`/api/offers/${id}`, { method: 'DELETE' });
+    } catch (e) {
+      console.error('API Error deleting offer:', e);
+    }
+    setOffers(prev => prev.filter(o => o.id !== id));
   };
 
-  // Store Info & Story
-  const updateStoreInfo = (newInfo) => {
+  // Store Info & Story with VPS sync
+  const updateStoreInfo = async (newInfo) => {
     setStoreInfo(prev => ({ ...prev, ...newInfo }));
+    try {
+      await fetch('/api/store-info', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newInfo)
+      });
+    } catch (e) {
+      console.error('API Error updating store info:', e);
+    }
   };
 
-  const updateStory = (newStory) => {
-    setStory(prev => ({ ...prev, ...newStory }));
+  const updateStory = async (newStory) => {
+    let imageUrl = newStory.image;
+    if (imageUrl) imageUrl = await uploadImageIfNeeded(imageUrl);
+    const payload = { ...newStory, image: imageUrl };
+
+    setStory(prev => ({ ...prev, ...payload }));
+
+    try {
+      await fetch('/api/story', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.error('API Error updating story:', e);
+    }
   };
 
-  const addOrder = (order) => {
-    const newOrder = {
-      ...order,
-      id: 'ord_' + Date.now(),
-      date: new Date().toLocaleString('es-VE')
-    };
-    setOrders([newOrder, ...orders]);
+  const addOrder = async (order) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order)
+      });
+      if (res.ok) {
+        const savedOrder = await res.json();
+        setOrders(prev => [savedOrder, ...prev]);
+        return;
+      }
+    } catch (e) {
+      console.error('API Error adding order:', e);
+    }
+    setOrders(prev => [{ ...order, id: 'ord_' + Date.now(), date: new Date().toLocaleString('es-VE') }, ...prev]);
   };
 
   return (
@@ -179,6 +289,7 @@ export function StoreProvider({ children }) {
       orders,
       adminPin,
       isAdminAuthenticated,
+      isLoading,
       loginAdmin,
       logoutAdmin,
       addFlavor,
