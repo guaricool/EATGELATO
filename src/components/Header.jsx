@@ -37,7 +37,7 @@ export default function Header({ cartCount, onOpenCart }) {
         {/* Action Buttons */}
         <div className="header-actions">
           <a 
-            href="https://wa.me/5491112345678?text=Hola%20EAT%20GELATO!%20Quisiera%20consultar%20por%20sus%20sabores%20artesanales." 
+            href="https://wa.me/584121234567?text=¡Hola%20EAT%20GELATO!%20Quisiera%20consultar%20por%20sus%20sabores%20artesanales." 
             target="_blank" 
             rel="noopener noreferrer"
             className="btn-header-wa"

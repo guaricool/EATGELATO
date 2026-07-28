@@ -1,15 +1,15 @@
 import React from 'react';
-import { MapPin, Clock, Phone, Mail, Instagram, Facebook, Star, Award } from 'lucide-react';
+import { MapPin, Clock, Phone, Mail, Instagram, Facebook, Star, Award, CreditCard } from 'lucide-react';
 
 export default function LocationHours() {
   return (
     <section id="contacto" className="location-section">
       <div className="container">
         <div className="section-header">
-          <span className="badge badge-blue">Visitanos o Pedí a Domicilio</span>
+          <span className="badge badge-blue">Visitanos en Caracas o Pedí a Domicilio</span>
           <h2 className="section-title">Ubicación y Horarios de Atención</h2>
           <p className="section-subtitle">
-            Te esperamos en nuestro local con ambiente climatizado y la cálida bienvenida de su propio dueño.
+            Te esperamos en nuestro local con la cálida bienvenida de su propio dueño.
           </p>
         </div>
 
@@ -20,8 +20,8 @@ export default function LocationHours() {
               <MapPin className="info-icon" size={24} />
               <div>
                 <h4>Dirección del Local</h4>
-                <p>Av. San Martín 1420, Palermo / Barrio Norte</p>
-                <span className="info-sub">Estacionamiento exclusivo para clientes.</span>
+                <p>Av. Principal de Las Mercedes, Caracas - Venezuela 🇻🇪</p>
+                <span className="info-sub">Estacionamiento exclusivo y seguridad para clientes.</span>
               </div>
             </div>
 
@@ -29,25 +29,25 @@ export default function LocationHours() {
               <Clock className="info-icon" size={24} />
               <div>
                 <h4>Horarios de Atención</h4>
-                <p><strong>Lunes a Jueves:</strong> 12:00 PM - 23:00 PM</p>
-                <p><strong>Viernes y Sábados:</strong> 12:00 PM - 00:30 AM</p>
-                <p><strong>Domingos:</strong> 12:00 PM - 23:30 PM</p>
+                <p><strong>Lunes a Jueves:</strong> 12:00 PM - 10:00 PM</p>
+                <p><strong>Viernes y Sábados:</strong> 12:00 PM - 11:30 PM</p>
+                <p><strong>Domingos:</strong> 12:00 PM - 10:30 PM</p>
               </div>
             </div>
 
             <div className="info-item">
               <Phone className="info-icon" size={24} />
               <div>
-                <h4>Teléfono & WhatsApp</h4>
-                <p>+54 9 11 1234-5678</p>
+                <h4>Teléfono & WhatsApp Directo</h4>
+                <p>+58 412-1234567 / +58 424-9876543</p>
               </div>
             </div>
 
             <div className="info-item">
-              <Mail className="info-icon" size={24} />
+              <CreditCard className="info-icon" size={24} />
               <div>
-                <h4>Correo Electrónico</h4>
-                <p>contacto@eatgelato.com</p>
+                <h4>Métodos de Pago Aceptados</h4>
+                <p>Pago Móvil (Tasa BCV) • Zelle • Efectivo $ • Punto de Venta</p>
               </div>
             </div>
 
@@ -67,7 +67,7 @@ export default function LocationHours() {
               <div className="map-overlay">
                 <Award size={40} className="map-award-icon" />
                 <h3>EAT GELATO GOURMET</h3>
-                <p>Av. San Martín 1420</p>
+                <p>Las Mercedes, Caracas 🇻🇪</p>
                 <a 
                   href="https://maps.google.com" 
                   target="_blank" 
@@ -90,9 +90,9 @@ export default function LocationHours() {
                   <Star size={16} fill="#E47A5A" color="#E47A5A" />
                 </div>
                 <p className="testimonial-quote">
-                  "Increíble el gelato de Pistacho Siciliano y la atención del dueño. Te hace probar los sabores y se nota la pasión artesanal."
+                  "El mejor gelato de Caracas. El sabor a Cacao de Chuao y Arequipe Real son increíbles. Además el dueño siempre te atiende con la mejor disposición."
                 </p>
-                <span className="testimonial-author">- Camila R., Vecina del barrio</span>
+                <span className="testimonial-author">- Valentina M., Caracas</span>
               </div>
             </div>
           </div>

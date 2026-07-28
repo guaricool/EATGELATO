@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { X, MessageCircle, Mail, Trash2, ShoppingBag, Truck, Store } from 'lucide-react';
+import { X, MessageCircle, Mail, Trash2, ShoppingBag, Truck, Store, CreditCard, DollarSign } from 'lucide-react';
+import { PAYMENT_METHODS } from '../data/flavors';
 
 export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, onClearCart }) {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
   const [deliveryMethod, setDeliveryMethod] = useState('delivery');
   const [address, setAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('pago-movil');
   const [notes, setNotes] = useState('');
 
   if (!isOpen) return null;
@@ -19,34 +20,38 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
     
     cartItems.forEach((item, index) => {
       if (item.size) {
-        msg += `*${index + 1}. ${item.size.name}* ($${item.totalPrice.toLocaleString()})\n`;
+        msg += `*${index + 1}. ${item.size.name}* ($${item.totalPrice.toFixed(2)})\n`;
         msg += `  • Sabores: ${item.flavors.join(', ')}\n`;
         if (item.toppings && item.toppings.length > 0) {
           msg += `  • Toppings: ${item.toppings.map(t => t.name).join(', ')}\n`;
         }
       } else {
-        msg += `*${index + 1}. ${item.title}* ($${item.totalPrice.toLocaleString()})\n`;
+        msg += `*${index + 1}. ${item.title}* ($${item.totalPrice.toFixed(2)})\n`;
       }
       msg += `\n`;
     });
 
     msg += `-------------------------------\n`;
-    msg += `*Total:* $${totalCart.toLocaleString()}\n\n`;
+    msg += `*Total a Pagar:* $${totalCart.toFixed(2)} USD (o al cambio BCV)\n\n`;
     msg += `*Datos del Cliente:*\n`;
     msg += `• Nombre: ${customerName || 'No especificado'}\n`;
-    msg += `• Tipo de Entrega: ${deliveryMethod === 'delivery' ? 'Delivery a Domicilio' : 'Retiro en Local'}\n`;
+    msg += `• Teléfono: ${customerPhone || 'No especificado'}\n`;
+    msg += `• Método de Entrega: ${deliveryMethod === 'delivery' ? 'Delivery a Domicilio' : 'Retiro en Local'}\n`;
     if (deliveryMethod === 'delivery') {
       msg += `• Dirección: ${address || 'No especificada'}\n`;
     }
+    const payLabel = PAYMENT_METHODS.find(p => p.id === paymentMethod)?.label || paymentMethod;
+    msg += `• Forma de Pago: ${payLabel}\n`;
     if (notes) {
-      msg += `• Aclaraciones: ${notes}\n`;
+      msg += `• Notas: ${notes}\n`;
     }
 
     return encodeURIComponent(msg);
   };
 
   const handleSendWhatsApp = () => {
-    const waUrl = `https://wa.me/5491112345678?text=${generateWhatsAppMessage()}`;
+    // Venezuelan phone format +58 412 1234567
+    const waUrl = `https://wa.me/584121234567?text=${generateWhatsAppMessage()}`;
     window.open(waUrl, '_blank');
   };
 
@@ -56,20 +61,21 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
     
     cartItems.forEach((item, index) => {
       if (item.size) {
-        body += `${index + 1}. ${item.size.name} ($${item.totalPrice})\n`;
+        body += `${index + 1}. ${item.size.name} ($${item.totalPrice.toFixed(2)})\n`;
         body += `   Sabores: ${item.flavors.join(', ')}\n`;
         if (item.toppings && item.toppings.length > 0) {
           body += `   Toppings: ${item.toppings.map(t => t.name).join(', ')}\n`;
         }
       } else {
-        body += `${index + 1}. ${item.title} ($${item.totalPrice})\n`;
+        body += `${index + 1}. ${item.title} ($${item.totalPrice.toFixed(2)})\n`;
       }
     });
 
-    body += `\nTotal: $${totalCart}\n\n`;
-    body += `Datos:\nNombre: ${customerName}\nTeléfono: ${customerPhone}\nEntrega: ${deliveryMethod}\nDirección: ${address}\nNotas: ${notes}`;
+    const payLabel = PAYMENT_METHODS.find(p => p.id === paymentMethod)?.label || paymentMethod;
+    body += `\nTotal: $${totalCart.toFixed(2)} USD (Tasa BCV)\n\n`;
+    body += `Datos:\nNombre: ${customerName}\nTeléfono: ${customerPhone}\nEntrega: ${deliveryMethod}\nDirección: ${address}\nForma de Pago: ${payLabel}\nNotas: ${notes}`;
 
-    const mailtoUrl = `mailto:pedidos@eatgelato.com?subject=${subject}&body=${encodeURIComponent(body)}`;
+    const mailtoUrl = `mailto:pedidos@eatgelato.com.ve?subject=${subject}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, '_blank');
   };
 
@@ -115,7 +121,7 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
                       )}
                     </div>
                     <div className="cart-item-action">
-                      <span className="cart-item-price">${item.totalPrice.toLocaleString()}</span>
+                      <span className="cart-item-price">${item.totalPrice.toFixed(2)}</span>
                       <button 
                         className="btn-remove-item"
                         onClick={() => onRemoveItem(item.id)}
@@ -130,23 +136,23 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
 
               {/* Customer Info Form */}
               <div className="customer-form">
-                <h4 className="form-title">Datos para la Entrega</h4>
+                <h4 className="form-title">Datos de Entrega y Pago (Venezuela 🇻🇪)</h4>
 
                 <div className="form-group">
                   <label>Nombre y Apellido</label>
                   <input
                     type="text"
-                    placeholder="Ej. María González"
+                    placeholder="Ej. María Rodríguez"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>Teléfono de Contacto</label>
+                  <label>Teléfono de Contacto (WhatsApp)</label>
                   <input
                     type="tel"
-                    placeholder="Ej. +54 9 11 9876-5432"
+                    placeholder="Ej. 0412-1234567 / 0424-9876543"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                   />
@@ -163,27 +169,44 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
                     className={`delivery-btn ${deliveryMethod === 'pickup' ? 'active' : ''}`}
                     onClick={() => setDeliveryMethod('pickup')}
                   >
-                    <Store size={16} /> Retiro en Local
+                    <Store size={16} /> Retiro en Tienda
                   </button>
                 </div>
 
                 {deliveryMethod === 'delivery' && (
                   <div className="form-group">
-                    <label>Dirección de Entrega</label>
+                    <label>Dirección de Entrega (Ciudad / Sector)</label>
                     <input
                       type="text"
-                      placeholder="Calle, número, piso y departamento"
+                      placeholder="Calle, Av., Res. / Edificio, Nro. de Apto"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
                 )}
 
+                {/* Formas de Pago en Venezuela */}
                 <div className="form-group">
-                  <label>Notas / Indicaciones</label>
+                  <label>Forma de Pago</label>
+                  <div className="payment-options-grid">
+                    {PAYMENT_METHODS.map((method) => (
+                      <button
+                        key={method.id}
+                        type="button"
+                        className={`payment-chip ${paymentMethod === method.id ? 'active' : ''}`}
+                        onClick={() => setPaymentMethod(method.id)}
+                      >
+                        {method.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Notas / Punto de Referencia</label>
                   <input
                     type="text"
-                    placeholder="Ej. Timbre defectuoso, traer cambio..."
+                    placeholder="Ej. Casa de portón blanco frente a la panadería..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                   />
@@ -196,8 +219,11 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
         {cartItems.length > 0 && (
           <div className="cart-footer">
             <div className="cart-total-row">
-              <span>Total Estimado:</span>
-              <span className="total-amount">${totalCart.toLocaleString()}</span>
+              <div>
+                <span>Total a Pagar:</span>
+                <span className="bcv-note"> (Calculado en $ USD / Tasa BCV)</span>
+              </div>
+              <span className="total-amount">${totalCart.toFixed(2)} USD</span>
             </div>
 
             <div className="cart-send-actions">
@@ -413,6 +439,30 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
           border-color: var(--color-blue);
         }
 
+        .payment-options-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.5rem;
+        }
+
+        .payment-chip {
+          padding: 0.5rem;
+          border-radius: var(--radius-sm);
+          background: var(--bg-primary);
+          border: 1px solid rgba(61, 39, 34, 0.12);
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: var(--color-chocolate-muted);
+          cursor: pointer;
+          transition: var(--transition);
+        }
+
+        .payment-chip.active {
+          background: var(--color-terracotta);
+          color: #FFF;
+          border-color: var(--color-terracotta);
+        }
+
         .cart-footer {
           padding: 1.2rem 1.5rem;
           background: var(--bg-primary);
@@ -423,9 +473,15 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
           display: flex;
           align-items: center;
           justify-content: space-between;
-          font-size: 1.1rem;
+          font-size: 1.05rem;
           font-weight: 700;
           margin-bottom: 1rem;
+        }
+
+        .bcv-note {
+          font-size: 0.72rem;
+          color: var(--color-blue-dark);
+          font-weight: 600;
         }
 
         .total-amount {
